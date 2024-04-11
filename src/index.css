@@ -12,3 +12,9 @@ body {
     font-family: "Mooli", sans-serif system-ui, -apple-system, blinkMacSystemFont,
         "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue";
 }
+
+@layer {
+    .auth-section{
+        @apply w-full h-screen overflow-hidden flex flex-col items-start justify-start px-6 py-4 gap-6;
+    }
+}

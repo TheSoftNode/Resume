@@ -1,8 +1,15 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+import {Route, Routes} from "react-router-dom"
+import { Authentication, HomeScreen } from '../pages'
 
 const App = () => {
   return (
-    <div className='w-screen flex justify-center items-center text-[#afe12e]'>App</div>
+    <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+            <Route path="/*" element={<HomeScreen />} />
+            <Route path="/auth" element={<Authentication />} />
+        </Routes>
+    </Suspense>
   )
 }
 
