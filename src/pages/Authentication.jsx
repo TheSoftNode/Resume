@@ -32,7 +32,7 @@ const Authentication = () => {
           <AuthButtonWithProvider
             Icon={FaGithub}
             label={"Signin with GitHub"}
-            provider={"GitHubAuthProvider"}
+            provider={"GithubAuthProvider"}
           />
         </div>
       </div>
