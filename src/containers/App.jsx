@@ -5,6 +5,9 @@ import { Authentication, HomeScreen } from '../pages'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import {ReactQueryDevtools} from "react-query/devtools"
 
+import "react-toastify/dist/ReactToastify.css"
+import { ToastContainer} from 'react-toastify'
+
 const App = () => {
     const queryClient = new QueryClient()
 
@@ -16,6 +19,10 @@ const App = () => {
             <Route path="/auth" element={<Authentication />} />
         </Routes>
     </Suspense>
+    <ToastContainer 
+        position="top-right"
+        theme="dark"
+    />
     <ReactQueryDevtools initialIsOpen={false}/>
     </QueryClientProvider>
   )
