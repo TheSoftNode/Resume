@@ -11,7 +11,8 @@ const useUser = () => {
         return userDetail;
       } catch (err) {
         console.log(err);
-        if (!err.message.includes("not Authenticated")) {
+        if ((!err.message.includes("not Authenticated")) && 
+        (!err.message.includes("not authenticated"))) {
           toast.error("Something went wrong...");
         }
       }
