@@ -3,8 +3,10 @@ import React, { useState } from 'react'
 import { FaTrash, FaUpload } from 'react-icons/fa6';
 import { PuffLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
-import { storage } from '../config/firebase.config';
+import { db, storage } from '../config/firebase.config';
 import { initialTags } from '../utils/helpers';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import useTemplates from '../hooks/useTemplates';
 
 const CreateTemplate = () => {
     const [formData, setFormData] = useState({
@@ -18,7 +20,13 @@ const CreateTemplate = () => {
       progress: 0
     });
 
-    const [selectedTags, setSelectedTags] = useState([])
+    const [selectedTags, setSelectedTags] = useState([]);
+
+    const {data: templates, 
+        isError: templatesIsError, 
+        isLoading: templatesIsLoading, 
+        refetch: templatesRefetch
+      } = useTemplates()
 
     // Handling input changes
     const handleInputChange = (e) => {
@@ -108,6 +116,42 @@ const CreateTemplate = () => {
       }
     }
 
+    const pushToCloud = async () => {
+      const timestamp = serverTimestamp();
+      const id = `${Date.now()}`
+      const _doc = {
+        _id: id,
+        title: formData.title,
+        imageURL: imageAsset.url,
+        tags: selectedTags,
+        name: templates && templates.length > 0 ?
+        `Template${templates.length + 1}`
+        : "Template1",
+        timestamp: timestamp
+      };
+
+      await setDoc(doc(db, "templates", id), _doc).then(() => {
+        setFormData((prevData) => ({
+          ...prevData,
+          title: "",
+          imageURL: ""
+        }));
+
+        setImageAsset((prevAsset) => ({
+          ...prevAsset,
+          url: null
+        }));
+
+        setSelectedTags([]);
+        templatesRefetch()
+        toast.success("Data pushed to the cloud")
+
+      })
+      .catch(error => {
+        toast.error(`Error: ${error.message}`);
+      })
+    }
+
   return (
     <div className="w-full px-4 lg:px-10 2xl:px-32 py-4 grid grid-cols-1
     lg:grid-cols-12">
@@ -125,7 +169,10 @@ const CreateTemplate = () => {
                 </p>
 
                 <p className="text-sm text-txtDark capitalize font-bold">
-                    Template 1
+                    {templates && templates.length > 0 ?
+                    `Template${templates.length + 1}`
+                    : "Template1"
+                    }
                 </p>
             </div>
 
@@ -214,6 +261,16 @@ const CreateTemplate = () => {
                 </div>
               ))}
             </div>
+
+            {/* button action */}
+            <button 
+              type="button"
+              className="w-full bg-blue-700 text-white rounded-md
+              py-3"
+              onClick={pushToCloud}
+            >
+              Save
+            </button>
         </div>        
 
         {/* right container */}

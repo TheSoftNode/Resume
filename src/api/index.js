@@ -1,4 +1,4 @@
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, orderBy, query, setDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase.config";
 
 export const getUserDetail = () => {
@@ -36,29 +36,19 @@ export const getUserDetail = () => {
   });
 };
 
+export const getTemplates = () => {
+  return new Promise((resolve, reject) => {
+   const templateQuery = query(
+    collection(db, "templates"),
+    orderBy("timestamp", "asc")
+   );
 
+   const unsubscribe = onSnapshot(templateQuery, (querySnap) => {
+    const templates = querySnap.docs.map((doc) => doc.data());
+    resolve(templates)
+   });
 
-// import { doc, onSnapshot, setDoc } from "firebase/firestore";
-// import { auth, db } from "../config/firebase.config";
+   return () => unsubscribe();
+  });
+};
 
-// export const getUserDetail = async () => {
-//   try {
-//     const userCred = await auth.onAuthStateChanged();
-//     if (!userCred) {
-//       throw new Error("User is not authenticated");
-//     }
-
-//     const userData = userCred.providerData[0];
-//     const userDocRef = doc(db, "users", userData?.uid);
-
-//     const _doc = onSnapshot(userDocRef);
-//     if (_doc.exists()) {
-//       return _doc.data();
-//     } else {
-//       await setDoc(userDocRef, userData);
-//       return userData;
-//     }
-//   } catch (error) {
-//     throw error;
-//   }
-// };
