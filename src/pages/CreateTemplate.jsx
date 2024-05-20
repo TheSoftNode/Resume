@@ -1,12 +1,14 @@
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FaTrash, FaUpload } from 'react-icons/fa6';
 import { PuffLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import { db, storage } from '../config/firebase.config';
-import { initialTags } from '../utils/helpers';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { adminIds, initialTags } from '../utils/helpers';
+import { deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import useTemplates from '../hooks/useTemplates';
+import useUser from '../hooks/useUser';
+import { useNavigate } from 'react-router-dom';
 
 const CreateTemplate = () => {
     const [formData, setFormData] = useState({
@@ -26,7 +28,11 @@ const CreateTemplate = () => {
         isError: templatesIsError, 
         isLoading: templatesIsLoading, 
         refetch: templatesRefetch
-      } = useTemplates()
+      } = useTemplates();
+
+    const {data: user, isLoading } = useUser();
+
+    const navigate = useNavigate();
 
     // Handling input changes
     const handleInputChange = (e) => {
@@ -152,6 +158,25 @@ const CreateTemplate = () => {
       })
     }
 
+    // function to remove the data from the cloud
+    const removeTemplate = async (template) => {
+      const deleteRef = ref(storage, template?.imageURL);
+      await deleteObject(deleteRef).then(async () => {
+        await deleteDoc(doc(db, "templates", template?._id)).then(() => {
+          toast.success("Template deleted successfully")
+          templatesRefetch()
+        }).catch(err => {
+          toast.error(`Error: ${err.message}`);
+        })
+      })
+    }
+
+    useEffect(() => {
+      if(!isLoading && !adminIds.includes(user?.uid)){
+        navigate("/", {replace: true})
+      }
+    }, [user, isLoading])
+
   return (
     <div className="w-full px-4 lg:px-10 2xl:px-32 py-4 grid grid-cols-1
     lg:grid-cols-12">
@@ -188,7 +213,7 @@ const CreateTemplate = () => {
                 onChange={handleInputChange}
             />
 
-            {/* file uploader section */}
+            {/* file upload section */}
             <div className="w-full bg-gray-100 backdrop-blur-md h-[420px]
             lg:h-[620px] 2xl:h-[740px] rounded-md border-2 border-dotted
             border-gray-300 cursor-pointer flex items-center justify-center">
@@ -232,6 +257,7 @@ const CreateTemplate = () => {
                             loading="lazy"
                           />
 
+                          {/* Delete action */}
                           <div 
                             className="absolute top-4 right-4 w-8 h-8 rounded-md
                             flex items-center justify-center bg-red-500 cursor-pointer"
@@ -274,8 +300,60 @@ const CreateTemplate = () => {
         </div>        
 
         {/* right container */}
-        <div className="col-span-12 lg:col-span-8 2xl:col-span-9">
+        <div 
+          className="col-span-12 lg:col-span-8 2xl:col-span-9
+          px-2 w-full flex-1 py-4"
+          >
+            {templatesIsLoading ? (
+              <React.Fragment>
+                <div className="w-full h-full flex items-center justify-center">
+                  <PuffLoader color="#498FCD" size={40} />
+                </div>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                {templates && templates.length > 0 ? (
+                  <React.Fragment>
+                    <div
+                      className="w-full h-full grid grid-cols-1
+                      lg:grid-cols-2 2xl:grid-cols-4 gap-4"
+                    >
+                      {templates.map(template => (
+                        <div 
+                          key={template._id}
+                          className="w-full h-[500px] rounded-md overflow-hidden relative" 
+                        >
+                          <img 
+                            src={template?.imageURL} 
+                            className="w-full h-full object-cover"
+                            alt="" 
+                          />
 
+                          {/* delete action */}
+                          <div 
+                            className="absolute top-4 right-4 w-8 h-8 rounded-md
+                            flex items-center justify-center bg-red-500 cursor-pointer"
+                            onClick={() => removeTemplate(template)}
+                          >
+                            <FaTrash className="text-sm text-white" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                    <PuffLoader color="#498FCD" size={40} />
+                    <p className="text-xl tracking-wider capitalize
+                     text-txtPrimary">
+                      No data
+                    </p>
+                </div>
+                  </React.Fragment>
+                )}
+              </React.Fragment>
+            )}
         </div>
     </div>
   )
