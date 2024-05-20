@@ -4,6 +4,7 @@ import { FaTrash, FaUpload } from 'react-icons/fa6';
 import { PuffLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import { storage } from '../config/firebase.config';
+import { initialTags } from '../utils/helpers';
 
 const CreateTemplate = () => {
     const [formData, setFormData] = useState({
@@ -15,7 +16,9 @@ const CreateTemplate = () => {
       isImageLoading: false,
       url: null,
       progress: 0
-    })
+    });
+
+    const [selectedTags, setSelectedTags] = useState([])
 
     // Handling input changes
     const handleInputChange = (e) => {
@@ -92,6 +95,17 @@ const CreateTemplate = () => {
     const isAllowed = file => {
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png"]
       return allowedTypes.includes(file.type)
+    }
+
+    const handleSelectedTags = tag => {
+      // Check if the tag is selected or not
+      if(selectedTags.includes(tag)){
+        // if selected then remove it
+        setSelectedTags(selectedTags.filter(selected => selected !== tag))
+      }
+      else {
+        setSelectedTags([...selectedTags, tag])
+      }
     }
 
   return (
@@ -183,6 +197,22 @@ const CreateTemplate = () => {
                     )}
                 </React.Fragment>
               )}
+            </div>
+
+            {/* tags */}
+            <div className="w-full flex items-center flex-wrap gap-2">
+              {initialTags.map((tag, i) => (
+                <div 
+                  key={i} 
+                  className={`border border-gray-300 px-2 py-1 
+                    rounded-md cursor-pointer ${selectedTags.includes(tag) ?
+                      "bg-blue-500 text-white" : ""
+                    }`}
+                  onClick={() => handleSelectedTags(tag)}
+                >
+                  <p className="text-xs">{tag}</p>
+                </div>
+              ))}
             </div>
         </div>        
 
