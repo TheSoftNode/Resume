@@ -1,19 +1,26 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { addToHover, fadInOutWithOpacity, scaleInOut } from "../animations";
-import { BiFolderPlus, BiHeart } from "react-icons/bi";
+import { BiFolderPlus, BiHeart, BiSolidFolderPlus, BiSolidHeart } from "react-icons/bi";
 import useUser from "../hooks/useUser";
+import { saveToCollection, saveToFavorite } from "../api";
+import useTemplates from "../hooks/useTemplates";
 
 const TemplateDesignPin = ({ data, index }) => {
-  const {data: user, refetch: userRefetch} = useUser();
+  const { data: user, refetch: userRefetch } = useUser();
+  const {refetch: temp_refetch } = useTemplates()
 
   const addToCollection = async (e) => {
     e.stopPropagation();
-    await saveToCollection(user, data)
-    userRefetch
+    await saveToCollection(user, data);
+    userRefetch();
   };
 
-  const addToFavorite = async () => {};
+  const addToFavorite = async (e) => {
+    e.stopPropagation();
+    await saveToFavorite(user, data);
+    temp_refetch();
+  };
 
   return (
     <motion.div key={data?._id} {...scaleInOut(index)}>
@@ -31,14 +38,30 @@ const TemplateDesignPin = ({ data, index }) => {
           >
             <div className="flex flex-col items-end justify-start w-full gap-8">
               <InnerBoxCard
-                label={"Add To Collection"}
-                Icon={BiFolderPlus}
+                label={
+                  user?.collections?.includes(data?._id)
+                    ? "Added already"
+                    : "Add To Collections"
+                }
+                Icon={
+                  user?.collections?.includes(data?._id)
+                    ? BiSolidFolderPlus
+                    : BiFolderPlus
+                }
                 onHandle={addToCollection}
               />
 
               <InnerBoxCard
-                label={"Add To Favorite"}
-                Icon={BiHeart}
+                label={
+                  data?.favorites?.includes(user?.uid)
+                    ? "Remove From Favorites"
+                    : "Add To Favorites"
+                }
+                Icon={
+                  data?.favorites?.includes(user?.uid)
+                    ? BiSolidHeart
+                    : BiHeart
+                }
                 onHandle={addToFavorite}
               />
             </div>
