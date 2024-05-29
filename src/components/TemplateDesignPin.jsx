@@ -5,10 +5,13 @@ import { BiFolderPlus, BiHeart, BiSolidFolderPlus, BiSolidHeart } from "react-ic
 import useUser from "../hooks/useUser";
 import { saveToCollection, saveToFavorite } from "../api";
 import useTemplates from "../hooks/useTemplates";
+import { useNavigate } from "react-router-dom";
 
 const TemplateDesignPin = ({ data, index }) => {
   const { data: user, refetch: userRefetch } = useUser();
-  const {refetch: temp_refetch } = useTemplates()
+  const {refetch: temp_refetch } = useTemplates();
+  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   const addToCollection = async (e) => {
     e.stopPropagation();
@@ -22,16 +25,24 @@ const TemplateDesignPin = ({ data, index }) => {
     temp_refetch();
   };
 
+  const handleRouteNavigation = () => {
+    navigate(`/resumeDetail/${data?._id}`, {replace: true})
+  }
+
   return (
     <motion.div key={data?._id} {...scaleInOut(index)}>
       <div
+        onClick={handleRouteNavigation}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className="w-full h-[500px] 2xl:h-[740px] rounded-md 
         bg-gray-200 overflow-hidden relative"
       >
         <img src={data?.imageURL} className="w-full h-full object-cover" />
 
         <AnimatePresence>
-          <motion.div
+          {isHovered && (
+            <motion.div
             {...fadInOutWithOpacity}
             className="absolute inset-0 bg-[rgba(0,0,0,0.4)] flex
             flex-col items-center justify-start px-4 py-3 z-50 cursor-pointer"
@@ -66,6 +77,7 @@ const TemplateDesignPin = ({ data, index }) => {
               />
             </div>
           </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </motion.div>
